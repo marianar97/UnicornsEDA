@@ -1,0 +1,25 @@
+.nav-header{
+    background-color:#222222!important;
+    color: white !important;
+}
+
+.nav-header__row{
+    width: 50% !important;
+    color: black;
+}   
+
+.nav-header__title::after {
+    content: "Unicorn Dataset Data Analysis";
+    font-weight: bold;
+}
+
+@media (max-width: 768px){
+    .logo__image{
+        display: none !important;
+    }
+    .nav-header__title::after {
+        content: "Unicorn EDA";
+        font-weight: normal;
+    }
+}
+
