@@ -26,7 +26,8 @@ dropdown_country = dcc.Dropdown(
                         id='dropdown-country',
                         options=
                         [{'label': country, 'value': country} for country in countries],  
-                        value='All countries'
+                        value='All countries',
+                        multi=True
                     )
 
 dropdown_industry = dcc.Dropdown(
@@ -75,25 +76,7 @@ row = html.Div(
         dbc.Row(
             dbc.Col(
                 dcc.Graph(
-                    id='valuation-by-country',
-                    figure={
-                        'data': [
-                             go.Bar(
-                                x=dfs[0].index,
-                                y=dfs[0].valuation_in_billions,
-                                hovertemplate=
-                                    f"<b>Country:</b>%{{x}}</br><b>Valuation: </b>%{{y}} billions <br>", 
-                                name="Valuation"
-                            )
-                            # {'x': dfs[0].index, 'y': dfs[0].valuation_in_billions, 'type': 'bar', 'name': 'SF'},
-                        ],
-                        'layout': go.Layout(
-                                        title = 'Valuation ($B) by country', # Graph title
-                                        xaxis = dict(title = 'Country'), # x-axis label
-                                        yaxis = dict(title = 'Valuation'), # y-axis label
-                                        hovermode ='closest' # handles multiple points landing on the same vertical
-                                    )
-                    }
+                    id='valuation-by-country'
                 )
             )
         )
@@ -108,17 +91,52 @@ app.layout = html.Div(
     ]
 )
 
-# #callbacks 
-# @app.callback(
-#     Output('valuation-by-country', 'figure'),
-#     [Input('dropdown-country','value')]
-# )
-# def update_country_valuation(selected_country):
-#     print(selected_country)
-#     if selected_country != 'All countries':
-#         df =df[df.country == selected_country]
-        
-#     return
+#callbacks 
+
+@app.callback(
+    Output('valuation-by-country', 'figure'),
+    [Input('dropdown-country','value')]
+)
+def update_country_valuation(selected_countries):
+    country_df = df 
+    print(selected_countries)
+    print(type(selected_countries))
+
+    if type(selected_countries) == list:
+        print("its a list")
+        if len(selected_countries) > 1 and 'All countries' in selected_countries:
+            selected_countries.remove('All countries')
+            country_df = country_df.loc[country_df['country'].isin(selected_countries)]
+        elif 'All countries' not in selected_countries:
+            country_df = country_df.loc[country_df['country'].isin(selected_countries)]
+    
+
+    dfs = []
+    for column in ['country', 'industry']:
+        dfs.append(country_df.groupby(column).sum().sort_values(by='valuation_in_billions', ascending=False))
+
+    dfs_count= []
+    for i, column in enumerate(['country', 'industry']):
+        dfs_count.append(df.groupby(column).count())
+        dfs_count[i].reindex(dfs[i].index)
+    
+    bar = go.Bar(
+            x=dfs[0].index,
+            y=dfs[0].valuation_in_billions,
+            hovertemplate=
+                f'<b>Country: </b>%{{x}}</br>' +
+                f'<b>Valuation: </b>%{{y}} billions' +
+                f'<br> <extra></extra>', 
+            name="Valuation"
+        )
+    layout = go.Layout(
+                title = 'Valuation ($B) by country', # Graph title
+                xaxis = dict(title = 'Country'), # x-axis label
+                yaxis = dict(title = 'Valuation ($B)'), # y-axis label
+                hovermode ='closest' # handles multiple points landing on the same vertical
+            )
+
+    return {'data': [bar], 'layout': layout}
 
 
 if __name__ == '__main__':
