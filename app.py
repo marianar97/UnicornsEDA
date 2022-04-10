@@ -1,4 +1,5 @@
 
+from pydoc import classname
 import dash_bootstrap_components as dbc
 from dash import Input, Output, State, html, dash, dcc
 from dash_bootstrap_components._components.Container import Container
@@ -31,8 +32,9 @@ dropdown_country = dcc.Dropdown(
                     )
 
 dropdown_industry = dcc.Dropdown(
+                        id='dropdown-industry',
                         options=
-                        [{'label': industry, 'value': industry} for industry in industries],
+                            [{'label': industry, 'value': industry} for industry in industries],
                         value='All industries'
                     )
 dropdowns = dbc.Row(
@@ -71,23 +73,39 @@ navbar = dbc.Navbar(
 
 
 # valuation by country chart
-row = html.Div(
+country_valuation_chart = html.Div(
     [ 
-        dbc.Row(
-            dbc.Col(
+       dbc.Row(
+           dbc.Col(
                 dcc.Graph(
                     id='valuation-by-country'
                 )
-            )
+           )
         )
-    ]
+    ],
+     className='chart'
+)
+
+# valuation by industry chart
+industry_valuation_chart = html.Div(
+    [ 
+       dbc.Row(
+           dbc.Col(
+                dcc.Graph(
+                    id='valuation-by-industry'
+                )
+           )
+        )
+    ], className='chart'
 )
 
 # app layout
 app.layout = html.Div(
     [
         navbar,
-        row
+        country_valuation_chart,
+        industry_valuation_chart  
+
     ]
 )
 
@@ -95,12 +113,18 @@ app.layout = html.Div(
 
 @app.callback(
     Output('valuation-by-country', 'figure'),
-    [Input('dropdown-country','value')]
+    [
+        Input('dropdown-country','value'),
+        Input('dropdown-industry','value')
+    ]
 )
-def update_country_valuation(selected_countries):
-    country_df = df 
-    print(selected_countries)
-    print(type(selected_countries))
+def update_country_valuation(selected_countries, selected_industry):
+    industry_df = df 
+
+    if selected_industry != 'All industries':
+        industry_df = df[df['industry']==selected_industry]
+
+    country_df = industry_df
 
     if type(selected_countries) == list:
         print("its a list")
@@ -110,22 +134,15 @@ def update_country_valuation(selected_countries):
         elif 'All countries' not in selected_countries:
             country_df = country_df.loc[country_df['country'].isin(selected_countries)]
     
-
-    dfs = []
-    for column in ['country', 'industry']:
-        dfs.append(country_df.groupby(column).sum().sort_values(by='valuation_in_billions', ascending=False))
-
-    dfs_count= []
-    for i, column in enumerate(['country', 'industry']):
-        dfs_count.append(df.groupby(column).count())
-        dfs_count[i].reindex(dfs[i].index)
+    df_country_valuation = country_df.groupby('country').sum().sort_values(by='valuation_in_billions', ascending=False)
     
+   
     bar = go.Bar(
-            x=dfs[0].index,
-            y=dfs[0].valuation_in_billions,
+            x=df_country_valuation.index,
+            y=df_country_valuation.valuation_in_billions,
             hovertemplate=
                 f'<b>Country: </b>%{{x}}</br>' +
-                f'<b>Valuation: </b>%{{y}} billions' +
+                f'<b>Valuation: </b>%{{y}} billions </br>' +
                 f'<br> <extra></extra>', 
             name="Valuation"
         )
@@ -138,6 +155,48 @@ def update_country_valuation(selected_countries):
 
     return {'data': [bar], 'layout': layout}
 
+@app.callback(
+    Output('valuation-by-industry', 'figure'),
+    [
+        Input('dropdown-country','value'),
+        Input('dropdown-industry','value')
+    ]
+)
+def update_industry_valuation(selected_countries, selected_industry):
+    industry_df = df 
+
+    if selected_industry != 'All industries':
+        industry_df = df[df['industry']==selected_industry]
+
+    country_df = industry_df
+
+    if type(selected_countries) == list:
+        print("its a list")
+        if len(selected_countries) > 1 and 'All countries' in selected_countries:
+            selected_countries.remove('All countries')
+            country_df = country_df.loc[country_df['country'].isin(selected_countries)]
+        elif 'All countries' not in selected_countries:
+            country_df = country_df.loc[country_df['country'].isin(selected_countries)]
+    
+    df_industry_valuation = country_df.groupby('industry').sum().sort_values(by='valuation_in_billions', ascending=False)
+    
+    bar = go.Bar(
+            x=[industry[0:15] for  industry in df_industry_valuation.index],
+            y=df_industry_valuation.valuation_in_billions,
+            hovertemplate=
+                f'<b>Country: </b>%{{x}}</br>' +
+                f'<b>Valuation: </b>%{{y}} billions </br>' +
+                f'<br> <extra></extra>', 
+            name="Valuation"
+        )
+    layout = go.Layout(
+                title = 'Valuation ($B) by country', # Graph title
+                xaxis = dict(title = 'Country'), # x-axis label
+                yaxis = dict(title = 'Valuation ($B)'), # y-axis label
+                hovermode ='closest' # handles multiple points landing on the same vertical
+            )
+
+    return {'data': [bar], 'layout': layout}
 
 if __name__ == '__main__':
     app.run_server(debug=True)
