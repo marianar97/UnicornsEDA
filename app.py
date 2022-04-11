@@ -1,5 +1,4 @@
 
-from pydoc import classname
 import dash_bootstrap_components as dbc
 from dash import Input, Output, State, html, dash, dcc
 from dash_bootstrap_components._components.Container import Container
@@ -115,70 +114,6 @@ def data_bars(df, column):
 
     return styles
 
-def data_bars_diverging(df, column, color_above='#3D9970', color_below='#FF4136'):
-    n_bins = 100
-    bounds = [i * (1.0 / n_bins) for i in range(n_bins + 1)]
-    col_max = df[column].max()
-    col_min = df[column].min()
-    ranges = [
-        ((col_max - col_min) * i) + col_min
-        for i in bounds
-    ]
-    midpoint = (col_max + col_min) / 2.
-
-    styles = []
-    for i in range(1, len(bounds)):
-        min_bound = ranges[i - 1]
-        max_bound = ranges[i]
-        min_bound_percentage = bounds[i - 1] * 100
-        max_bound_percentage = bounds[i] * 100
-
-        style = {
-            'if': {
-                'filter_query': (
-                    '{{{column}}} >= {min_bound}' +
-                    (' && {{{column}}} < {max_bound}' if (i < len(bounds) - 1) else '')
-                ).format(column=column, min_bound=min_bound, max_bound=max_bound),
-                'column_id': column
-            },
-            'paddingBottom': 2,
-            'paddingTop': 2
-        }
-        if max_bound > midpoint:
-            background = (
-                """
-                    linear-gradient(90deg,
-                    white 0%,
-                    white 50%,
-                    {color_above} 50%,
-                    {color_above} {max_bound_percentage}%,
-                    white {max_bound_percentage}%,
-                    white 100%)
-                """.format(
-                    max_bound_percentage=max_bound_percentage,
-                    color_above=color_above
-                )
-            )
-        else:
-            background = (
-                """
-                    linear-gradient(90deg,
-                    white 0%,
-                    white {min_bound_percentage}%,
-                    {color_below} {min_bound_percentage}%,
-                    {color_below} 50%,
-                    white 50%,
-                    white 100%)
-                """.format(
-                    min_bound_percentage=min_bound_percentage,
-                    color_below=color_below
-                )
-            )
-        style['background'] = background
-        styles.append(style)
-
-    return styles
-
 #charts
 
 # valuation by country chart
@@ -200,8 +135,10 @@ industry_valuation_chart = html.Div(
     
 )
 
+# Companies valuation table
 df_companies_valuations = df[['company','valuation_in_billions']]
 companies_table = dash.dash_table.DataTable(
+        id='table-companies',
         data=df_companies_valuations.to_dict('records'),
         #columns=[{"name": i.replace("_", " ").capitalize(), "id": i} for i in df_companies_valuations.columns],
         columns = [
@@ -244,10 +181,6 @@ companies_table = dash.dash_table.DataTable(
         ),
         
     )
-columns=[{"name": i.replace("_", " ").capitalize(), "id": i} for i in df_companies_valuations.columns],
-print(columns)
-print(type(df.valuation_in_billions.values))
-
 
 
 style_table={
@@ -289,11 +222,21 @@ app.layout = html.Div(
     Output('valuation-by-country', 'figure'),
     [
         Input('dropdown-country','value'),
-        Input('dropdown-industry','value')
+        Input('dropdown-industry','value'),
+        Input('table-companies', 'active_cell'),
+        Input('table-companies', 'data')
     ]
 )
-def update_country_valuation(selected_countries, selected_industry):
-    industry_df = df 
+def update_country_valuation(selected_countries, selected_industry, active_cell, data):
+    company_df = df
+
+    if active_cell and active_cell['column_id']=='company':
+        col = active_cell['column_id']
+        row = active_cell['row']
+        cellData = data[row][col]
+        company_df = company_df[company_df['company'] == cellData]
+
+    industry_df = company_df
 
     if selected_industry != 'All industries':
         industry_df = df[df['industry']==selected_industry]
@@ -301,7 +244,6 @@ def update_country_valuation(selected_countries, selected_industry):
     country_df = industry_df
 
     if type(selected_countries) == list:
-        print("its a list")
         if len(selected_countries) > 1 and 'All countries' in selected_countries:
             selected_countries.remove('All countries')
             country_df = country_df.loc[country_df['country'].isin(selected_countries)]
@@ -338,19 +280,28 @@ def update_country_valuation(selected_countries, selected_industry):
     Output('valuation-by-industry', 'figure'),
     [
         Input('dropdown-country','value'),
-        Input('dropdown-industry','value')
+        Input('dropdown-industry','value'),
+        Input('table-companies', 'active_cell'),
+        Input('table-companies', 'data')
     ]
 )
-def update_industry_valuation(selected_countries, selected_industry):
-    industry_df = df 
+def update_industry_valuation(selected_countries, selected_industry, active_cell, data):
 
+    company_df = df
+
+    if active_cell and active_cell['column_id']=='company':
+        col = active_cell['column_id']
+        row = active_cell['row']
+        cellData = data[row][col]
+        company_df = company_df[company_df['company'] == cellData]
+
+    industry_df = company_df
     if selected_industry != 'All industries':
         industry_df = df[df['industry']==selected_industry]
 
     country_df = industry_df
 
     if type(selected_countries) == list:
-        print("its a list")
         if len(selected_countries) > 1 and 'All countries' in selected_countries:
             selected_countries.remove('All countries')
             country_df = country_df.loc[country_df['country'].isin(selected_countries)]
@@ -380,6 +331,8 @@ def update_industry_valuation(selected_countries, selected_industry):
             )
 
     return {'data': [bar], 'layout': layout}
+
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
