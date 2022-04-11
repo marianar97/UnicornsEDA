@@ -139,7 +139,6 @@ industry_valuation_chart = html.Div(
 df_companies_valuations = df[['company','valuation_in_billions']]
 companies_table = dash.dash_table.DataTable(
         id='table-companies',
-        data=df_companies_valuations.to_dict('records'),
         #columns=[{"name": i.replace("_", " ").capitalize(), "id": i} for i in df_companies_valuations.columns],
         columns = [
                 {'name': 'Company', 'id': 'company', 'type':'text'},
@@ -332,7 +331,30 @@ def update_industry_valuation(selected_countries, selected_industry, active_cell
 
     return {'data': [bar], 'layout': layout}
 
+@app.callback(
+    Output('table-companies', 'data'),
+    [   
+        Input('dropdown-country','value'),
+        Input('dropdown-industry','value'),
+    ]
+)
+def update_table(selected_countries, industry):
+    df_companies_valuations = df
 
+    if industry != 'All industries':
+        df_companies_valuations = df_companies_valuations[df_companies_valuations['industry']==industry]
+
+    country_df = df_companies_valuations
+
+    if type(selected_countries) == list:
+        if len(selected_countries) > 1 and 'All countries' in selected_countries:
+            selected_countries.remove('All countries')
+            country_df = country_df.loc[country_df['country'].isin(selected_countries)]
+        elif 'All countries' not in selected_countries:
+            country_df = country_df.loc[country_df['country'].isin(selected_countries)]
+
+    df_table = country_df[['company','valuation_in_billions']]
+    return df_table.to_dict('records')
 
 if __name__ == '__main__':
     app.run_server(debug=True)
