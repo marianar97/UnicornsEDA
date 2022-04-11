@@ -1,11 +1,28 @@
+*{
+    box-sizing: border-box;
+}
+
+body{
+    background-color: #31343a;
+}
+
+table {
+    border-spacing: 0px;
+}
+
+th, td {
+    padding: 0px !important;
+    width: 20px !important;
+  }
+
 .nav-header{
-    background-color:#222222!important;
+    background-color:#272a31!important;
     color: white !important;
 }
 
 .nav-header__row{
     width: 50% !important;
-    color: black;
+    color: #272a31;
 }   
 
 .nav-header__title::after {
@@ -24,5 +41,17 @@
 }
 
 .chart{
-    width: 95%;
+    margin:20px !important;
+}
+
+.table-col{
+    height: 1000px;
+}
+
+.main-div{
+    height: 100% !important;
+}
+
+.companies-table{
+    max-height: 100px;
 }
