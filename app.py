@@ -1,4 +1,4 @@
-
+from pydoc import classname
 import dash_bootstrap_components as dbc
 from dash import Input, Output, State, html, dash, dcc
 from dash_bootstrap_components._components.Container import Container
@@ -6,12 +6,10 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 
-PLOTLY_LOGO = "https://storage.googleapis.com/kaggle-datasets-images/1980436/3269422/4182c369dc3d66b18fb2c9c6c99096a0/dataset-cover.png?t=2022-03-08-10-33-09"
-PLOTLY_LOGO = 'assets/images/unicorn.png'
+UNICORN_LOGO = 'assets/images/unicorn.png'
 
 
 app = dash.Dash(
-    external_stylesheets=[dbc.themes.BOOTSTRAP],
     meta_tags=[
         {"name": "viewport", "content": "width=device-width, initial-scale=1.0"}
     ]
@@ -35,48 +33,15 @@ dropdown_country = dcc.Dropdown(
                         options=
                         [{'label': country, 'value': country} for country in countries],  
                         value='All countries',
-                        multi=True
+                        multi=True,
                     )
 
 dropdown_industry = dcc.Dropdown(
                         id='dropdown-industry',
                         options=
                             [{'label': industry, 'value': industry} for industry in industries],
-                        value='All industries'
+                        value='All industries',
                     )
-dropdowns = dbc.Row(
-    [
-        dbc.Col(dropdown_country, className='p-2', xs=12, md=6),
-        dbc.Col(dropdown_industry, className='p-2', xs=12, md=6),   
-    ],
-    className="g-0 ms-auto mt-3 mt-md-0 nav-header__row",
-    align="center",
-)
-
-# nav-bar logo
-logo =  html.A(
-            dbc.Row(
-                [
-                    dbc.Col(html.Img(src=PLOTLY_LOGO, height="40px"), className='logo__image'),
-                    dbc.Col(dbc.NavbarBrand("", className="nav-header__title ms-2")),
-                ],
-                align="center",
-                className="g-0",
-            ),
-            href="https://plotly.com",
-            style={"textDecoration": "none"},
-        )
-navbar = dbc.Navbar(
-    dbc.Container(
-        [
-            logo,
-            dropdowns,  
-        ], fluid=True
-    ),
-    color="dark",
-    dark=True,
-    class_name='nav-header'
-)
 
 
 def data_bars(df, column):
@@ -120,9 +85,9 @@ def data_bars(df, column):
 country_valuation_chart = html.Div(
     [ 
         dcc.Graph(
-            id='valuation-by-country'
+            id='valuation-by-country',
         )
-    ],className='chart'
+    ], className='valuation-by-country'
 )
 
 # valuation by industry chart
@@ -131,88 +96,74 @@ industry_valuation_chart = html.Div(
         dcc.Graph(
             id='valuation-by-industry'
         )
-    ], className='chart'
-    
+    ],className='valuation-by-industry'
 )
 
 # Companies valuation table
 df_companies_valuations = df[['company','valuation_in_billions']]
-companies_table = dash.dash_table.DataTable(
-        id='table-companies',
-        #columns=[{"name": i.replace("_", " ").capitalize(), "id": i} for i in df_companies_valuations.columns],
-        columns = [
-                {'name': 'Company', 'id': 'company', 'type':'text'},
-                {'name': 'Valuation ($B)', 'id': 'valuation_in_billions', 'type':'numeric'}
-        ],
-        #page_action='none',
-        # fixed_rows={'headers': True},
-        style_cell={
-            'overflow': 'hidden',
-            'textOverflow': 'ellipsis',
-            'maxWidth': 0,
-            'textAlign': 'center',    
-        },
-        style_cell_conditional=[
-            {
-                'if': {'column_id': 'valuation_in_billions'},
-                'textAlign': 'right'
+companies_table = html.Div(
+        dash.dash_table.DataTable(
+            id='table-companies',
+            columns = [
+                    {'name': 'Company', 'id': 'company', 'type':'text'},
+                    {'name': 'Valuation ($B)', 'id': 'valuation_in_billions', 'type':'numeric'}
+            ],
+            style_cell={
+                'overflow': 'hidden',
+                'textOverflow': 'ellipsis',
+                'maxWidth': 0,
+                'textAlign': 'center',    
+                'fontSize': '1.2em'
             },
-        ],
-        style_header={
-            'backgroundColor': 'rgb(30, 30, 30)',
-            'color': 'white',
-            'fontWeight': 'bold',
-        },
-        style_data={
-            'backgroundColor': '#272a31',
-            'color': 'white'
-        },
-        style_table={
-                'maxHeight': '900px',
-                'height': '1000px%',
-                'overflowY': 'scroll',
-                'width': '100%',
-                'minWidth': '100%',
-                'marginTop': '20px'
-        },
-        style_data_conditional=(
-            data_bars(df, 'valuation_in_billions') 
-        ),
+            # style_cell_conditional=[
+            #     {
+            #         'if': {'column_id': 'valuation_in_billions'},
+            #         'textAlign': 'right'
+            #     },
+            # ],
+            style_header={
+                'backgroundColor': 'rgb(30, 30, 30)',
+                'color': 'white',
+                'fontWeight': 'bold',
+                'fontSize': '1.2em'
+            },
+            style_data={
+                'backgroundColor': '#272a31',
+                'color': 'white'
+            },
+            # style_table={
+            #         'marginTop': '20px'
+            # },
+            style_data_conditional=(
+                data_bars(df, 'valuation_in_billions') 
+            )
+        ), className='companies-table',
         
-    )
+)
 
 
-style_table={
-                'maxHeight': '50ex',
-                'overflowY': 'scroll',
-                'width': '100%',
-                'minWidth': '100%',
-            },
+navbar = html.Div(
+    [
+        html.Img(src=UNICORN_LOGO, alt="logo", className="logo"),
+        html.Div(
+            [
+                dropdown_industry,
+                dropdown_country
+            ],
+            className='dropdowns'
+        )
+    ],
+    className='navbar'
+)
 
 # app layout
 app.layout = html.Div(
     [
         navbar,
-        html.Div(
-            dbc.Row(
-                [
-                    dbc.Col(
-                        [
-                            country_valuation_chart,
-                            industry_valuation_chart  
-                        ], xs=12, md=9,
-                    ),
-                    dbc.Col(
-                        [
-                            companies_table
-                        ], xs=12, md=3, 
-                        className='companies-table'
-                    )
-                ], className='h-100'
-            ),
-            style = {'height': '100%'}
-        )
-    ], style = {'height': '100%'}
+        country_valuation_chart,
+        companies_table,
+        industry_valuation_chart
+    ], className='container'
 )
 
 #callbacks 
@@ -226,6 +177,7 @@ app.layout = html.Div(
         Input('table-companies', 'data')
     ]
 )
+
 def update_country_valuation(selected_countries, selected_industry, active_cell, data):
     company_df = df
 
@@ -269,8 +221,10 @@ def update_country_valuation(selected_countries, selected_industry, active_cell,
                 plot_bgcolor = '#272a31',
                 paper_bgcolor = '#272a31',
                 font=dict(
-                    color="white"
-                )
+                    color="white",
+                ),
+                autosize=True,
+
             )
                 
     return {'data': [bar], 'layout': layout}
@@ -325,7 +279,7 @@ def update_industry_valuation(selected_countries, selected_industry, active_cell
                 plot_bgcolor = '#272a31',
                 paper_bgcolor = '#272a31',
                 font=dict(
-                    color="white"
+                    color="white",
                 )
             )
 
