@@ -27,7 +27,7 @@ for column in ['country', 'industry']:
 
 # nav-bar dropdowns
 countries = ['All countries' ] + sorted(df.country.unique()) 
-industries =  ['All industries'] + sorted(df.industry.unique(), key=len)
+industries =  ['All industries'] + sorted(df.industry.unique())
 dropdown_country = dcc.Dropdown(
                         id='dropdown-country',
                         options=
@@ -112,8 +112,7 @@ companies_table = html.Div(
                 'overflow': 'hidden',
                 'textOverflow': 'ellipsis',
                 'maxWidth': 0,
-                'textAlign': 'center',    
-                'fontSize': '1.2em'
+                'textAlign': 'center',
             },
             # style_cell_conditional=[
             #     {
@@ -125,7 +124,6 @@ companies_table = html.Div(
                 'backgroundColor': 'rgb(30, 30, 30)',
                 'color': 'white',
                 'fontWeight': 'bold',
-                'fontSize': '1.2em'
             },
             style_data={
                 'backgroundColor': '#272a31',
@@ -144,7 +142,14 @@ companies_table = html.Div(
 
 navbar = html.Div(
     [
-        html.Img(src=UNICORN_LOGO, alt="logo", className="logo"),
+        html.Div(
+            html.Div(
+                [
+                    html.Img(src=UNICORN_LOGO, alt="logo", className="logo"),
+                    html.H1("", className='navbar__title')
+                ], className='navbar__title-container'
+            ), className='bigger-container'
+        ),
         html.Div(
             [
                 dropdown_industry,
@@ -161,8 +166,8 @@ app.layout = html.Div(
     [
         navbar,
         country_valuation_chart,
+        industry_valuation_chart,
         companies_table,
-        industry_valuation_chart
     ], className='container'
 )
 

@@ -15,60 +15,128 @@ body {
   clear: both;
 }
 
+
 .logo{
   height: 40px;
-  float: left;
-  margin: .5em
+  vertical-align: middle;
 }
 
-.dropdowns{
-  float: right;
-  width: 40%;
-  padding: 1em;
+.navbar__title-container{
+  margin: auto;
+  width: 80%;
+}
+
+.bigger-container{
+  width: 100%;
+}
+
+
+.navbar__title{
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.5rem;
+  color: white;
+  vertical-align: middle;
+  display: inline-block;
+}
+
+.navbar__title::after{
+  content: "Unicorn EDA";
 }
 
 #dropdown-country, #dropdown-industry {
-  /* display: inline-block; */
-  float: right;
-  width: 40%;
-}
+  /* display: inline-block; 
+  float: right; */
+  width: 80%;
+  margin: auto;
+  margin-bottom: 10px;
+} 
 
-#dropdown-industry {
-  margin-left: 10px;
-  margin-right: 10px;
-}
 
 .container{
   display: grid;
-  grid-template-columns: 1fr 20%;
-  grid-template-rows: auto 1fr 1fr;
-  height: 100vh;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto repeat(3, 1fr);
+  grid-template-areas: "header"
+                       "country_valuation"
+                       "industry_valuation"
+                       "table";
   gap: 1em;
+  height: 150vh;
 }
 
 .navbar{
-  grid-column: 1 / -1;
-  grid-row: 1 / 2;
+  grid-area: header;
 }
 
 .valuation-by-country{
-  grid-column: 1 / 2;
-  grid-row: 2 / 3;
-  height: 100%;
+  grid-area: country_valuation
 }
 
 .valuation-by-industry{
-  grid-column: 1 / 2;
-  grid-row: 3 / 4;
+  grid-area: industry_valuation
 }
 
 .companies-table{
-  grid-column: 2 / -1;
-  grid-row: 2 / 4;
-  height: 100%;
+  grid-area: table;
   overflow: scroll;
 }
 
 .dash-graph {
   height: 100% !important;
+}
+
+@media(min-width: 60rem) {
+
+  .container{
+    display: grid;
+    grid-template-columns: 1fr 20%;
+    grid-template-rows: auto 1fr 1fr;
+    grid-template-areas: "header header"
+                         "country_valuation table"
+                         "industry_valuation table";
+    height: 100vh;
+    gap: 1em;
+  }
+
+  .dropdowns{
+    float: right;
+    width: 50%;
+    padding: 1em;
+  }
+  
+  #dropdown-country, #dropdown-industry {
+    /* display: inline-block; */
+    float: right;
+    width: 40%;
+  }
+  
+  #dropdown-industry{
+    margin-left: 10px;
+  }
+
+  .logo{
+    height: 40px;
+    float: left;
+    margin: .5em
+  }
+  
+  .navbar__title{
+    float: left;
+    vertical-align: middle;
+  }
+
+  .navbar__title-container{
+    width: 100%
+  }
+
+  .navbar__title::after{
+    content: "Unicorn Dataset Analysis";
+  }
+
+  .companies-table{
+    grid-area: table;
+    height: 100%;
+    overflow: scroll;
+  }
+
 }
