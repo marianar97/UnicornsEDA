@@ -113,13 +113,9 @@ companies_table = html.Div(
                 'textOverflow': 'ellipsis',
                 'maxWidth': 0,
                 'textAlign': 'center',
+                'fontSize': 20,
             },
-            # style_cell_conditional=[
-            #     {
-            #         'if': {'column_id': 'valuation_in_billions'},
-            #         'textAlign': 'right'
-            #     },
-            # ],
+            
             style_header={
                 'backgroundColor': 'rgb(30, 30, 30)',
                 'color': 'white',
@@ -129,16 +125,12 @@ companies_table = html.Div(
                 'backgroundColor': '#272a31',
                 'color': 'white'
             },
-            # style_table={
-            #         'marginTop': '20px'
-            # },
             style_data_conditional=(
                 data_bars(df, 'valuation_in_billions') 
             )
         ), className='companies-table',
         
 )
-
 
 navbar = html.Div(
     [
@@ -182,7 +174,6 @@ app.layout = html.Div(
         Input('table-companies', 'data')
     ]
 )
-
 def update_country_valuation(selected_countries, selected_industry, active_cell, data):
     company_df = df
 
@@ -207,32 +198,70 @@ def update_country_valuation(selected_countries, selected_industry, active_cell,
             country_df = country_df.loc[country_df['country'].isin(selected_countries)]
     
     df_country_valuation = country_df.groupby('country').sum().sort_values(by='valuation_in_billions', ascending=False)
-    
+    df_country_count = country_df.groupby('country').count()
+    df_country_count = df_country_count.reindex(df_country_valuation.index)
    
-    bar = go.Bar(
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Bar(
             x=df_country_valuation.index,
             y=df_country_valuation.valuation_in_billions,
             hovertemplate=
                 f'<b>Country: </b>%{{x}}</br>' +
-                f'<b>Valuation: </b>%{{y}} billions </br>' +
-                f'<br> <extra></extra>', 
-            name="Valuation"
+                 f'<b>Valuation: </b>%{{y}} billions </br>' +
+                 f'<br> <extra></extra>', 
+            name='valuation',
+            marker = {'color' : '#2177b4'}
         )
-    layout = go.Layout(
-                title = 'Valuation ($B) by country', # Graph title
-                xaxis = dict(title = 'Country'), # x-axis label
-                yaxis = dict(title = 'Valuation ($B)'), # y-axis label
-                hovermode ='closest', # handles multiple points landing on the same vertical,
-                plot_bgcolor = '#272a31',
-                paper_bgcolor = '#272a31',
-                font=dict(
-                    color="white",
-                ),
-                autosize=True,
+    )
 
-            )
+    fig.add_trace(
+        go.Scatter(
+            x=df_country_count.index,
+            y=df_country_count.valuation_in_billions,
+            hovertemplate=
+                 f'<b>Country: </b>%{{x}}</br>' +
+                 f"<b>Count: </b>%{{y}} unicorns <br> <extra></extra>",
+            name='count',
+        )
+    )
+
+
+    fig.update_layout(
+        title={
+            'text': 'Valuation ($B) by country',
+            'y':0.9,
+            'x':0.5,
+            'xanchor': 'center',
+            'yanchor': 'top'
+        },
+        yaxis = dict(title = 'Valuation ($B)'), # y-axis label
+        hovermode ='closest', # handles multiple points landing on the same vertical,
+        plot_bgcolor = '#272a31',
+        paper_bgcolor = '#272a31',
+        font=dict(
+            color="white",
+            size=18,
+        ),
+        autosize=True,
+        legend=dict(
+            yanchor="top",
+            y=0.99,
+            xanchor="left",
+            x=0.99,
+        ),
+        # showlegend=False,
+        hoverlabel=dict(
+            bgcolor="white",
+            font_size=18
+        )
+
+    )
+    fig.update_xaxes(showgrid=False)
+    fig.update_yaxes(showgrid=False)
                 
-    return {'data': [bar], 'layout': layout}
+    return fig
 
 @app.callback(
     Output('valuation-by-industry', 'figure'),
@@ -267,28 +296,71 @@ def update_industry_valuation(selected_countries, selected_industry, active_cell
             country_df = country_df.loc[country_df['country'].isin(selected_countries)]
     
     df_industry_valuation = country_df.groupby('industry').sum().sort_values(by='valuation_in_billions', ascending=False)
-    
-    bar = go.Bar(
+    df_industry_count = country_df.groupby('industry').count()
+    df_industry_count = df_industry_count.reindex(df_industry_valuation.index)
+   
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Bar(
             x=df_industry_valuation.index,
             y=df_industry_valuation.valuation_in_billions,
             hovertemplate=
                 f'<b>Industry: </b>%{{x}}</br>' +
-                f'<b>Valuation: </b>%{{y}} billions </br>' +
-                f'<br> <extra></extra>', 
-            name="Valuation"
+                 f'<b>Valuation: </b>%{{y}} billions </br>' +
+                 f'<br> <extra></extra>', 
+            name='valuation',
+            marker = {'color' : '#2177b4'}
         )
-    layout = go.Layout(
-                title = 'Valuation ($B) by industry', # Graph title
-                yaxis = dict(title = 'Valuation ($B)'), # y-axis label
-                hovermode ='closest', # handles multiple points landing on the same vertical,
-                plot_bgcolor = '#272a31',
-                paper_bgcolor = '#272a31',
-                font=dict(
-                    color="white",
-                )
-            )
+    )
 
-    return {'data': [bar], 'layout': layout}
+    fig.add_trace(
+        go.Scatter(
+            x=df_industry_count.index,
+            y=df_industry_count.valuation_in_billions,
+            hovertemplate=
+                 f'<b>Industry: </b>%{{x}}</br>' +
+                 f"<b>Count: </b>%{{y}} unicorns <br> <extra></extra>",
+            name='count',
+        )
+    )
+
+
+    fig.update_layout(
+        title={
+            'text': 'Valuation ($B) by industry',
+            'y':0.9,
+            'x':0.5,
+            'xanchor': 'center',
+            'yanchor': 'top'
+        },
+        yaxis = dict(title = 'Valuation ($B)'), # y-axis label
+        hovermode ='closest', # handles multiple points landing on the same vertical,
+        plot_bgcolor = '#272a31',
+        paper_bgcolor = '#272a31',
+        font=dict(
+            color="white",
+            size=18,
+        ),
+        autosize=True,
+        legend=dict(
+            yanchor="top",
+            y=0.99,
+            xanchor="left",
+            x=0.99,
+        ),
+        # showlegend=False,
+        hoverlabel=dict(
+            bgcolor="white",
+            font_size=18
+        )
+
+    )
+    fig.update_xaxes(showgrid=False)
+    fig.update_yaxes(showgrid=False)
+
+    return fig
+
 
 @app.callback(
     Output('table-companies', 'data'),
@@ -313,7 +385,12 @@ def update_table(selected_countries, industry):
             country_df = country_df.loc[country_df['country'].isin(selected_countries)]
 
     df_table = country_df[['company','valuation_in_billions']]
+
+
+
     return df_table.to_dict('records')
+
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
