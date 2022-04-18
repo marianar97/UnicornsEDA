@@ -15,9 +15,11 @@ app = dash.Dash(
     ]
     )
 app.title = 'Unicorn Dataset Analysis'
+app._favicon = 'images/unicorn.png'
+
 
 # data manipulation
-df = pd.read_csv('/home/mariana.ramirez/Documents/study/DashPotly/unicorn_eda/unicorn.csv')
+df = pd.read_csv('unicorn.csv')
 
 #group by country and industry
 dfs = []
@@ -111,11 +113,8 @@ companies_table = html.Div(
             style_cell={
                 'overflow': 'hidden',
                 'textOverflow': 'ellipsis',
-                'maxWidth': 0,
-                'textAlign': 'center',
-                'fontSize': 20,
+                'maxWidth': 0
             },
-            
             style_header={
                 'backgroundColor': 'rgb(30, 30, 30)',
                 'color': 'white',
@@ -123,24 +122,33 @@ companies_table = html.Div(
             },
             style_data={
                 'backgroundColor': '#272a31',
-                'color': 'white'
+                'color': 'white',
             },
             style_data_conditional=(
                 data_bars(df, 'valuation_in_billions') 
-            )
+            ),
+           css=[{
+                'selector': '.dash-table-tooltip',
+                'rule': 'background-color: white; color: black; position: absolute; white-space=pre'
+
+            }],
+            tooltip_duration=None
         ), className='companies-table',
         
 )
 
 navbar = html.Div(
-    [
-        html.Div(
+    [   
+        html.A(
             html.Div(
-                [
-                    html.Img(src=UNICORN_LOGO, alt="logo", className="logo"),
-                    html.H1("", className='navbar__title')
-                ], className='navbar__title-container'
-            ), className='bigger-container'
+                html.Div(
+                    [
+                        html.Img(src=UNICORN_LOGO, alt="logo", className="logo"),
+                        html.H1("", className='navbar__title')
+                    ], className='navbar__title-container'
+                ), className='bigger-container'
+            ),
+            href="https://www.kaggle.com/code/marami21/unicorns-eda"
         ),
         html.Div(
             [
@@ -242,7 +250,7 @@ def update_country_valuation(selected_countries, selected_industry, active_cell,
         paper_bgcolor = '#272a31',
         font=dict(
             color="white",
-            size=18,
+            # size=18,
         ),
         autosize=True,
         legend=dict(
@@ -254,7 +262,7 @@ def update_country_valuation(selected_countries, selected_industry, active_cell,
         # showlegend=False,
         hoverlabel=dict(
             bgcolor="white",
-            font_size=18
+            # font_size=18
         )
 
     )
@@ -340,7 +348,7 @@ def update_industry_valuation(selected_countries, selected_industry, active_cell
         paper_bgcolor = '#272a31',
         font=dict(
             color="white",
-            size=18,
+            # size=18,
         ),
         autosize=True,
         legend=dict(
@@ -352,7 +360,7 @@ def update_industry_valuation(selected_countries, selected_industry, active_cell
         # showlegend=False,
         hoverlabel=dict(
             bgcolor="white",
-            font_size=18
+            # font_size=18
         )
 
     )
@@ -364,6 +372,7 @@ def update_industry_valuation(selected_countries, selected_industry, active_cell
 
 @app.callback(
     Output('table-companies', 'data'),
+    Output('table-companies', 'tooltip_data'),
     [   
         Input('dropdown-country','value'),
         Input('dropdown-industry','value'),
@@ -386,9 +395,24 @@ def update_table(selected_countries, industry):
 
     df_table = country_df[['company','valuation_in_billions']]
 
+    tooltip_data= []
+    
+    for row in country_df.to_dict('records'):
+        founded_year = row['founded_year']
+        try:
+            founded_year = int(founded_year)
+        except ValueError:
+            pass
+        tooltip_data.append(
+            {
+                'company': 
+                { 'value': '**Company:** {}\n\n**Country**: {}\n\n**City**: {}\n\n**Valuation**: {}B\n\n**Date Joined**: {}\n\n**Founded year**: {}\n\n'.format(row['company'], row['country'], row['city'], row['valuation_in_billions'],row['date_joined'], founded_year),
+                  'type': 'markdown'
+                }
+            }
+        )
 
-
-    return df_table.to_dict('records')
+    return df_table.to_dict('records'), tooltip_data
 
 
 

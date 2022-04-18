@@ -61,7 +61,7 @@ body {
                        "industry_valuation"
                        "table";
   gap: 1em;
-  height: 150vh;
+  height: 200vh;
 }
 
 .navbar{
@@ -69,7 +69,8 @@ body {
 }
 
 .valuation-by-country{
-  grid-area: country_valuation
+  grid-area: country_valuation;
+  font-size: 50px !important;
 }
 
 .valuation-by-industry{
@@ -85,6 +86,23 @@ body {
   height: 100% !important;
 }
 
+.textpoint text{
+  font-size: 50px !important;
+}
+
+.gtitle{
+  font-size: 1rem !important;
+}
+
+.dash-table-tooltip{
+  font-size: 1.2rem !important;
+}
+
+.dash-tooltip {
+  background-color: red !important;
+}
+
+
 @media(min-width: 60rem) {
 
   .container{
@@ -97,6 +115,7 @@ body {
     height: 100vh;
     gap: 1em;
   }
+  
 
   .dropdowns{
     float: right;
@@ -137,6 +156,21 @@ body {
     grid-area: table;
     height: 100%;
     overflow: scroll;
+
+  }
+  .gtitle{
+    font-size: 1.6rem !important;
+  }
+  .ytitle{
+    font-size: 1.2rem !important;
+  }
+
+  .xtick text, .legendtext{
+    font-size: 1rem !important;
+  }
+
+  .dash-cell-value, .column-header-name, .Select-value-label {
+    font-size: 1.2rem !important;
   }
 
 }
