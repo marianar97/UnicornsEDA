@@ -1,9 +1,5 @@
-from pydoc import classname
-import dash_bootstrap_components as dbc
-from dash import Input, Output, State, html, dash, dcc
-from dash_bootstrap_components._components.Container import Container
+from dash import Input, Output, html, dash, dcc
 import pandas as pd
-import numpy as np
 import plotly.graph_objects as go
 
 UNICORN_LOGO = 'assets/images/unicorn.png'
@@ -21,27 +17,29 @@ app._favicon = 'images/unicorn.png'
 # data manipulation
 df = pd.read_csv('unicorn.csv')
 
-#group by country and industry
+# group by country and industry
 dfs = []
 for column in ['country', 'industry']:
-     dfs.append(df.groupby(column).sum().sort_values(by='valuation_in_billions', ascending=False))
+    dfs.append(df.groupby(column).sum().sort_values(by='valuation_in_billions', ascending=False))
 
 
 # nav-bar dropdowns
 countries = ['All countries' ] + sorted(df.country.unique()) 
-industries =  ['All industries'] + sorted(df.industry.unique())
+industries = ['All industries'] + sorted(df.industry.unique())
 dropdown_country = dcc.Dropdown(
                         id='dropdown-country',
-                        options=
-                        [{'label': country, 'value': country} for country in countries],  
+                        options=[
+                            {'label': country, 'value': country}
+                            for country in countries],  
                         value='All countries',
                         multi=True,
                     )
 
 dropdown_industry = dcc.Dropdown(
                         id='dropdown-industry',
-                        options=
-                            [{'label': industry, 'value': industry} for industry in industries],
+                        options=[
+                            {'label': industry, 'value': industry}
+                            for industry in industries],
                         value='All industries',
                     )
 
@@ -81,7 +79,8 @@ def data_bars(df, column):
 
     return styles
 
-#charts
+
+# charts
 
 # valuation by country chart
 country_valuation_chart = html.Div(
@@ -102,11 +101,11 @@ industry_valuation_chart = html.Div(
 )
 
 # Companies valuation table
-df_companies_valuations = df[['company','valuation_in_billions']]
+df_companies_valuations = df[['company', 'valuation_in_billions']]
 companies_table = html.Div(
         dash.dash_table.DataTable(
             id='table-companies',
-            columns = [
+            columns=[
                     {'name': 'Company', 'id': 'company', 'type':'text'},
                     {'name': 'Valuation ($B)', 'id': 'valuation_in_billions', 'type':'numeric'}
             ],
@@ -130,11 +129,10 @@ companies_table = html.Div(
            css=[{
                 'selector': '.dash-table-tooltip',
                 'rule': 'background-color: white; color: black; position: absolute; white-space=pre'
-
             }],
             tooltip_duration=None
         ), className='companies-table',
-        
+     
 )
 
 navbar = html.Div(
@@ -176,8 +174,8 @@ app.layout = html.Div(
 @app.callback(
     Output('valuation-by-country', 'figure'),
     [
-        Input('dropdown-country','value'),
-        Input('dropdown-industry','value'),
+        Input('dropdown-country', 'value'),
+        Input('dropdown-industry', 'value'),
         Input('table-companies', 'active_cell'),
         Input('table-companies', 'data')
     ]
@@ -216,11 +214,11 @@ def update_country_valuation(selected_countries, selected_industry, active_cell,
             x=df_country_valuation.index,
             y=df_country_valuation.valuation_in_billions,
             hovertemplate=
-                f'<b>Country: </b>%{{x}}</br>' +
+                 f'<b>Country: </b>%{{x}}</br>' +
                  f'<b>Valuation: </b>%{{y}} billions </br>' +
                  f'<br> <extra></extra>', 
             name='valuation',
-            marker = {'color' : '#2177b4'}
+            marker={'color': '#2177b4'}
         )
     )
 
@@ -244,10 +242,10 @@ def update_country_valuation(selected_countries, selected_industry, active_cell,
             'xanchor': 'center',
             'yanchor': 'top'
         },
-        yaxis = dict(title = 'Valuation ($B)'), # y-axis label
-        hovermode ='closest', # handles multiple points landing on the same vertical,
-        plot_bgcolor = '#272a31',
-        paper_bgcolor = '#272a31',
+        yaxis=dict(title = 'Valuation ($B)'), # y-axis label
+        hovermode='closest', # handles multiple points landing on the same vertical,
+        plot_bgcolor='#272a31',
+        paper_bgcolor='#272a31',
         font=dict(
             color="white",
             # size=18,
@@ -302,11 +300,11 @@ def update_industry_valuation(selected_countries, selected_industry, active_cell
             country_df = country_df.loc[country_df['country'].isin(selected_countries)]
         elif 'All countries' not in selected_countries:
             country_df = country_df.loc[country_df['country'].isin(selected_countries)]
-    
+
     df_industry_valuation = country_df.groupby('industry').sum().sort_values(by='valuation_in_billions', ascending=False)
     df_industry_count = country_df.groupby('industry').count()
     df_industry_count = df_industry_count.reindex(df_industry_valuation.index)
-   
+
     fig = go.Figure()
 
     fig.add_trace(
@@ -342,13 +340,12 @@ def update_industry_valuation(selected_countries, selected_industry, active_cell
             'xanchor': 'center',
             'yanchor': 'top'
         },
-        yaxis = dict(title = 'Valuation ($B)'), # y-axis label
-        hovermode ='closest', # handles multiple points landing on the same vertical,
-        plot_bgcolor = '#272a31',
-        paper_bgcolor = '#272a31',
+        yaxis=dict(title = 'Valuation ($B)'), # y-axis label
+        hovermode='closest', # handles multiple points landing on the same vertical,
+        plot_bgcolor='#272a31',
+        paper_bgcolor='#272a31',
         font=dict(
             color="white",
-            # size=18,
         ),
         autosize=True,
         legend=dict(
@@ -357,10 +354,8 @@ def update_industry_valuation(selected_countries, selected_industry, active_cell
             xanchor="left",
             x=0.99,
         ),
-        # showlegend=False,
         hoverlabel=dict(
             bgcolor="white",
-            # font_size=18
         )
 
     )
@@ -395,8 +390,7 @@ def update_table(selected_countries, industry):
 
     df_table = country_df[['company','valuation_in_billions']]
 
-    tooltip_data= []
-    
+    tooltip_data=[]    
     for row in country_df.to_dict('records'):
         founded_year = row['founded_year']
         try:
@@ -405,9 +399,9 @@ def update_table(selected_countries, industry):
             pass
         tooltip_data.append(
             {
-                'company': 
-                { 'value': '**Company:** {}\n\n**Country**: {}\n\n**City**: {}\n\n**Valuation**: {}B\n\n**Date Joined**: {}\n\n**Founded year**: {}\n\n'.format(row['company'], row['country'], row['city'], row['valuation_in_billions'],row['date_joined'], founded_year),
-                  'type': 'markdown'
+                'company': {
+                    'value': '**Company:** {}\n\n**Country**: {}\n\n**City**: {}\n\n**Valuation**: {}B\n\n**Date Joined**: {}\n\n**Founded year**: {}\n\n'.format(row['company'], row['country'], row['city'], row['valuation_in_billions'],row['date_joined'], founded_year),
+                    'type': 'markdown'
                 }
             }
         )
